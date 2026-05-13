@@ -24,7 +24,7 @@ public class RagChatService {
             VectorStore vectorStore,
             ChatClient chatClient,
             @Value("${app.rag.top-k:4}") int topK,
-            @Value("${app.rag.similarity-threshold:0.55}") double similarityThreshold
+            @Value("${app.rag.similarity-threshold:0.0}") double similarityThreshold
     ) {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient;

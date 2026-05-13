@@ -9,8 +9,8 @@ Enterprise RAG Demo 是一个面向 Java 工程师学习 AI 应用开发的 Spri
 - Java 17
 - Spring Boot 3.5.7
 - Spring AI 1.1.4
-- OpenAI 兼容 Chat Model
-- OpenAI 兼容 Embedding Model
+- Groq Chat Model
+- 智谱 AI Embedding Model
 - Spring AI `SimpleVectorStore`
 - 原生 HTML/CSS/JavaScript 前端
 - JUnit 5 + AssertJ 单元测试
@@ -39,7 +39,8 @@ flowchart LR
 
 系统外部依赖：
 
-- OpenAI 或兼容 OpenAI API 的模型服务。
+- Groq OpenAI 兼容 Chat API。
+- 智谱 AI OpenAI 兼容 Embedding API。
 - 浏览器访问本地静态页面。
 
 ## 模块职责
@@ -111,6 +112,8 @@ sequenceDiagram
 | 设计点 | 当前选择 | 适用原因 | 局限 |
 | --- | --- | --- | --- |
 | 向量库 | `SimpleVectorStore` 内存存储 | 零基础设施，适合 MVP 学习 | 重启后数据丢失，无法多实例共享 |
+| Chat Model | Groq `llama-3.3-70b-versatile` | OpenAI 兼容接口，低延迟，适合体验问答生成 | 需要单独配置 Groq API Key |
+| Embedding Model | 智谱 AI `embedding-3` | OpenAI 兼容接口，替换原 OpenAI Embedding | 需要关注向量维度、成本和限流 |
 | 文档格式 | `.md` / `.txt` | 简化解析，聚焦 RAG 主链路 | 不支持 PDF、Word、图片 OCR |
 | 切分策略 | 固定长度 + overlap + 可读断点 | 易理解，适合制度文档 | 缺少语义切分和标题层级保留 |
 | 评测方式 | 固定问题 + 关键词命中 | 最小化验证检索是否能命中关键信息 | 不能衡量生成质量、忠实度和引用准确率 |

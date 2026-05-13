@@ -3,7 +3,8 @@
 ## 环境要求
 
 - JDK 17
-- 可访问 OpenAI 或兼容 OpenAI API 的模型服务
+- 可访问 Groq Chat API
+- 可访问智谱 AI Embedding API
 - 推荐使用项目自带 Maven Wrapper：`./mvnw`
 
 项目已内置 Maven Wrapper 和项目级 Maven settings。这样可以避免本机全局 Maven 配置把依赖请求转发到不可用镜像。
@@ -11,13 +12,20 @@
 ## 环境变量
 
 ```bash
-export OPENAI_API_KEY="你的 key"
-export OPENAI_BASE_URL="https://api.openai.com"
-export OPENAI_CHAT_MODEL="gpt-4o-mini"
-export OPENAI_EMBEDDING_MODEL="text-embedding-3-small"
+export GROQ_API_KEY="你的 Groq API Key"
+export GROQ_BASE_URL="https://api.groq.com/openai"
+export GROQ_CHAT_MODEL="llama-3.3-70b-versatile"
+
+export ZAI_API_KEY="你的智谱 AI API Key"
+export ZAI_BASE_URL="https://open.bigmodel.cn/api/paas"
+export ZAI_EMBEDDING_MODEL="embedding-3"
+
+export APP_RAG_SIMILARITY_THRESHOLD="0.0"
 ```
 
-如果使用兼容 OpenAI API 的国内模型服务，需要把 `OPENAI_BASE_URL`、`OPENAI_CHAT_MODEL`、`OPENAI_EMBEDDING_MODEL` 替换成服务商对应值。
+`GROQ_CHAT_MODEL` 控制回答生成，`ZAI_EMBEDDING_MODEL` 控制文档入库和检索向量化。项目仍使用 Spring AI OpenAI starter 的配置命名空间，因为 Groq 和智谱都提供 OpenAI 兼容接口。
+
+`APP_RAG_SIMILARITY_THRESHOLD` 控制检索相似度阈值。不同 Embedding 模型的分数分布不同，智谱 Embedding 下先用 `0.0` 验证召回链路，再根据“运行评测”的结果逐步提高。
 
 ## 启动
 
@@ -76,14 +84,15 @@ http://localhost:8080
 
 ### 页面能打开，但导入样例失败
 
-导入样例会触发 Embedding 调用。如果 `OPENAI_API_KEY` 无效或模型服务不可访问，向量入库会失败。
+导入样例会触发 Embedding 调用。如果 `ZAI_API_KEY` 无效或模型服务不可访问，向量入库会失败。
 
 检查：
 
 ```bash
-echo $OPENAI_API_KEY
-echo $OPENAI_BASE_URL
-echo $OPENAI_EMBEDDING_MODEL
+echo $ZAI_API_KEY
+echo $ZAI_BASE_URL
+echo $ZAI_EMBEDDING_MODEL
+echo $APP_RAG_SIMILARITY_THRESHOLD
 ```
 
 ### 提问失败
@@ -93,8 +102,9 @@ echo $OPENAI_EMBEDDING_MODEL
 检查：
 
 - 是否已导入文档。
-- `OPENAI_CHAT_MODEL` 是否存在。
-- `OPENAI_BASE_URL` 是否兼容 OpenAI API。
+- `GROQ_API_KEY` 是否有效。
+- `GROQ_CHAT_MODEL` 是否存在。
+- `GROQ_BASE_URL` 是否为 Spring AI 可用的 Groq OpenAI 兼容地址。
 
 ### Maven 访问了错误镜像
 

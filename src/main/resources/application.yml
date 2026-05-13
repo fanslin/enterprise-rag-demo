@@ -9,18 +9,30 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
   ai:
+    model:
+      chat: openai
+      embedding: openai
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
     openai:
-      api-key: ${OPENAI_API_KEY:demo-key}
-      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
       chat:
+        api-key: ${GROQ_API_KEY:}
+        base-url: ${GROQ_BASE_URL:https://api.groq.com/openai}
+        completions-path: ${GROQ_CHAT_COMPLETIONS_PATH:/v1/chat/completions}
         options:
-          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+          model: ${GROQ_CHAT_MODEL:llama-3.3-70b-versatile}
           temperature: 0.2
       embedding:
+        api-key: ${ZAI_API_KEY:}
+        base-url: ${ZAI_BASE_URL:https://open.bigmodel.cn/api/paas}
+        embeddings-path: ${ZAI_EMBEDDINGS_PATH:/v4/embeddings}
         options:
-          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+          model: ${ZAI_EMBEDDING_MODEL:embedding-3}
 
 app:
   rag:
-    top-k: 4
-    similarity-threshold: 0.55
+    top-k: ${APP_RAG_TOP_K:4}
+    similarity-threshold: ${APP_RAG_SIMILARITY_THRESHOLD:0.0}

@@ -13,6 +13,7 @@
 ## P1：知识库生产化
 
 - 将 `SimpleVectorStore` 替换为持久化向量库：
+  - ChromaDB
   - PostgreSQL + pgvector
   - Milvus
   - Elasticsearch/OpenSearch vector search
@@ -74,7 +75,7 @@
 可以按以下结构介绍项目：
 
 1. 业务目标：企业制度知识库问答，减少员工查制度成本。
-2. 技术选型：Spring Boot + Spring AI + OpenAI 兼容模型 + 向量库。
+2. 技术选型：Spring Boot + Spring AI + Groq Chat Model + 智谱 AI Embedding Model + 向量库。
 3. RAG 主链路：上传文档、切分、Embedding、向量检索、Prompt 约束、回答引用。
 4. 工程取舍：内存向量库适合 MVP，生产环境会换 pgvector 或 Milvus。
 5. 质量保障：固定问题集做检索 smoke test，后续会扩展到离线评测。

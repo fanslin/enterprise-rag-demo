@@ -62,6 +62,8 @@ flowchart TD
 
 `VectorStore` 当前由 `AiConfig` 创建为 `SimpleVectorStore`。它会在添加文档时通过 Spring AI 的 `EmbeddingModel` 生成向量。
 
+当前项目使用 Groq Chat Model 和智谱 AI Embedding Model。Groq 用于检索完成后的回答生成；智谱 Embedding 用于导入文档和检索问题时的向量化，因此需要同时配置 `GROQ_API_KEY`、`GROQ_CHAT_MODEL`、`ZAI_API_KEY` 和 `ZAI_EMBEDDING_MODEL`。
+
 ## 检索策略
 
 实现位置：`src/main/java/com/example/enterpriserag/service/RagChatService.java`
@@ -72,7 +74,7 @@ flowchart TD
 app:
   rag:
     top-k: 4
-    similarity-threshold: 0.55
+    similarity-threshold: 0.0
 ```
 
 检索逻辑：
@@ -89,7 +91,7 @@ return vectorStore.similaritySearch(request);
 含义：
 
 - `topK` 控制最多取回多少个片段。
-- `similarityThreshold` 控制最低相似度门槛。
+- `similarityThreshold` 控制最低相似度门槛。不同 Embedding 模型的分数分布不同，MVP 默认设为 `0.0`，先保证能召回结果，再通过评测逐步调高。
 - 如果没有命中片段，系统直接返回“知识库里没有检索到足够相关的资料”，不调用 Chat Model。
 
 ## Prompt 设计
