@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>企业知识库 RAG Demo</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="app-shell">
+    <section class="workspace">
+        <aside class="sidebar">
+            <div>
+                <p class="eyebrow">Spring AI + RAG</p>
+                <h1>企业制度知识库问答</h1>
+            </div>
+
+            <div class="panel">
+                <h2>知识库</h2>
+                <form id="uploadForm" class="upload-box">
+                    <input id="fileInput" type="file" accept=".md,.txt">
+                    <button type="submit">上传文档</button>
+                </form>
+                <button id="sampleBtn" class="secondary" type="button">导入样例制度</button>
+                <div id="docList" class="doc-list"></div>
+            </div>
+
+            <div class="panel">
+                <h2>检索评测</h2>
+                <button id="evalBtn" class="secondary" type="button">运行评测</button>
+                <div id="evalList" class="eval-list"></div>
+            </div>
+        </aside>
+
+        <section class="chat-area">
+            <div id="messages" class="messages">
+                <article class="message assistant">
+                    <p>先导入样例制度，或者上传自己的 Markdown/TXT 文档。然后问我：试用期请假会影响转正吗？</p>
+                </article>
+            </div>
+
+            <form id="chatForm" class="composer">
+                <input id="questionInput" type="text" autocomplete="off"
+                       placeholder="输入你的问题，例如：报销发票最晚什么时候提交？">
+                <button type="submit">提问</button>
+            </form>
+        </section>
+    </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: enterprise-rag-demo
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:demo-key}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+          temperature: 0.2
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+
+app:
+  rag:
+    top-k: 4
+    similarity-threshold: 0.55
