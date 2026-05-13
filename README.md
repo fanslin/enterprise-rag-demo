@@ -49,6 +49,15 @@ http://localhost:8080
 2. 在右侧提问，例如“试用期请假会影响转正吗？”。
 3. 点击“运行评测”，查看标准问题是否检索到了包含期望关键词的片段。
 
+## 项目文档
+
+- [文档索引](docs/README.md)
+- [架构说明](docs/architecture.md)
+- [RAG 实现原理](docs/rag-implementation.md)
+- [API 说明](docs/api.md)
+- [开发与运行手册](docs/development.md)
+- [演进路线](docs/roadmap.md)
+
 ## API
 
 ```http
