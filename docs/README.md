@@ -1,6 +1,6 @@
 # Documentation Index
 
-本目录记录 Enterprise RAG Demo 的架构、实现原理、接口与演进方向，便于复盘、面试讲解和后续迭代。
+本目录记录 Enterprise RAG Demo 的架构、实现原理、接口与演进方向，便于复盘和后续迭代。
 
 ## 文档列表
 
