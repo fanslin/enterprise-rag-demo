@@ -31,6 +31,23 @@ export APP_RAG_SIMILARITY_THRESHOLD="0.0"
 
 项目已内置 Maven Wrapper 和项目级 Maven 配置，会优先使用 Maven Central，避免本机全局 Maven 镜像配置不可用时影响构建。也可以使用本机 Maven 3.9+ 运行同样命令。
 
+## 常用命令入口
+
+项目提供 `Makefile` 封装常用开发命令：
+
+```bash
+make help
+make local
+make local PORT=18080
+make test
+make package
+```
+
+- `make local`：启动本地 Mock 模式，默认端口为 8080，不需要外部模型 API Key。
+- `make local PORT=18080`：用指定端口启动本地 Mock 模式。
+- `make test`：运行单元测试。
+- `make package`：打包并运行测试。
+
 ## 验证
 
 ```bash
@@ -53,6 +70,8 @@ http://localhost:8080
 如果只是本地体验 UI、入库流程和 RAG 主链路形态，可以启用本地 Mock 模式，不需要配置外部模型 API Key：
 
 ```bash
+make local
+# 或直接使用 Maven Wrapper：
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
