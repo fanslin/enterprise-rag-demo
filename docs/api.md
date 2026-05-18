@@ -32,6 +32,23 @@ GET /
 }
 ```
 
+## 模型配置状态
+
+```http
+GET /api/health/ai
+```
+
+响应：
+
+```json
+{
+  "mode": "local",
+  "chatConfigured": true,
+  "embeddingConfigured": true,
+  "message": "本地 Mock 模式已启用，不会调用外部模型服务。"
+}
+```
+
 ## 上传文档
 
 ```http

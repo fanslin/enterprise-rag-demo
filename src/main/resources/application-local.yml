@@ -1,0 +1,5 @@
+spring:
+  ai:
+    model:
+      chat: none
+      embedding: none

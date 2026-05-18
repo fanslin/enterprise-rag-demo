@@ -33,6 +33,14 @@ export APP_RAG_SIMILARITY_THRESHOLD="0.0"
 ./mvnw spring-boot:run
 ```
 
+本地无 API Key 时可以启用 Mock 模式：
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Mock 模式会禁用 OpenAI 兼容模型自动配置，改用项目内置的本地 Chat 和 Embedding 实现，适合验证页面、上传、切分、检索参数和错误处理。
+
 打开：
 
 ```text
