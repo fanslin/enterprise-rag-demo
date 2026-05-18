@@ -4,6 +4,8 @@ const sampleBtn = document.querySelector("#sampleBtn");
 const evalBtn = document.querySelector("#evalBtn");
 const chatForm = document.querySelector("#chatForm");
 const questionInput = document.querySelector("#questionInput");
+const topKInput = document.querySelector("#topKInput");
+const similarityThresholdInput = document.querySelector("#similarityThresholdInput");
 const docList = document.querySelector("#docList");
 const evalList = document.querySelector("#evalList");
 const messages = document.querySelector("#messages");
@@ -16,28 +18,40 @@ uploadForm.addEventListener("submit", async (event) => {
     }
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
-    const result = await request("/api/documents", { method: "POST", body: formData });
-    addAssistantMessage(`${result.source} 已入库，共 ${result.chunks} 个片段。`);
-    fileInput.value = "";
-    await refreshDocuments();
+    try {
+        const result = await request("/api/documents", { method: "POST", body: formData });
+        addAssistantMessage(`${result.source} 已入库，共 ${result.chunks} 个片段。`);
+        fileInput.value = "";
+        await refreshDocuments();
+    } catch (error) {
+        addAssistantMessage(error.message);
+    }
 });
 
 sampleBtn.addEventListener("click", async () => {
-    const result = await request("/api/documents/sample", { method: "POST" });
-    addAssistantMessage(`${result.source} 已入库，共 ${result.chunks} 个片段。现在可以提问了。`);
-    await refreshDocuments();
+    try {
+        const result = await request("/api/documents/sample", { method: "POST" });
+        addAssistantMessage(`${result.source} 已入库，共 ${result.chunks} 个片段。现在可以提问了。`);
+        await refreshDocuments();
+    } catch (error) {
+        addAssistantMessage(error.message);
+    }
 });
 
 evalBtn.addEventListener("click", async () => {
     evalList.innerHTML = `<div class="doc-item">评测中...</div>`;
-    const results = await request("/api/eval");
-    evalList.innerHTML = results.map((item) => `
-        <div class="eval-item ${item.passed ? "pass" : "fail"}">
-            <strong>${item.passed ? "通过" : "未命中"}</strong><br>
-            ${escapeHtml(item.question)}<br>
-            期望关键词：${escapeHtml(item.expectedKeyword)}
-        </div>
-    `).join("");
+    try {
+        const results = await request(`/api/eval?${retrievalQueryParams()}`);
+        evalList.innerHTML = results.map((item) => `
+            <div class="eval-item ${item.passed ? "pass" : "fail"}">
+                <strong>${item.passed ? "通过" : "未命中"}</strong><br>
+                ${escapeHtml(item.question)}<br>
+                期望关键词：${escapeHtml(item.expectedKeyword)}
+            </div>
+        `).join("");
+    } catch (error) {
+        evalList.innerHTML = `<div class="eval-item fail">${escapeHtml(error.message)}</div>`;
+    }
 });
 
 chatForm.addEventListener("submit", async (event) => {
@@ -53,7 +67,7 @@ chatForm.addEventListener("submit", async (event) => {
         const result = await request("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question })
+            body: JSON.stringify({ question, ...retrievalOptions() })
         });
         thinking.remove();
         addAssistantMessage(result.answer, result.citations);
@@ -64,7 +78,13 @@ chatForm.addEventListener("submit", async (event) => {
 });
 
 async function refreshDocuments() {
-    const docs = await request("/api/documents");
+    let docs;
+    try {
+        docs = await request("/api/documents");
+    } catch (error) {
+        docList.innerHTML = `<div class="doc-item">${escapeHtml(error.message)}</div>`;
+        return;
+    }
     if (!docs.length) {
         docList.innerHTML = `<div class="doc-item">还没有文档。</div>`;
         return;
@@ -85,6 +105,17 @@ async function request(url, options = {}) {
         throw new Error(body?.message || "请求失败");
     }
     return body;
+}
+
+function retrievalOptions() {
+    return {
+        topK: Number(topKInput.value),
+        similarityThreshold: Number(similarityThresholdInput.value)
+    };
+}
+
+function retrievalQueryParams() {
+    return new URLSearchParams(retrievalOptions()).toString();
 }
 
 function addUserMessage(text) {

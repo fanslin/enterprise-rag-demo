@@ -115,6 +115,30 @@ h2 {
     background: #fbfcfd;
 }
 
+.control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.control-grid label {
+    display: grid;
+    gap: 6px;
+    color: #405063;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.control-grid input {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid #c8d2dc;
+    border-radius: 6px;
+    padding: 0 10px;
+    background: #fbfcfd;
+}
+
 .doc-list,
 .eval-list {
     display: grid;

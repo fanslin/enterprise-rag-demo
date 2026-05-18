@@ -23,9 +23,17 @@ public class EvalService {
     }
 
     public List<EvalCaseResult> runRetrievalEval() {
+        return runRetrievalEval(null, null);
+    }
+
+    public List<EvalCaseResult> runRetrievalEval(Integer topK, Double similarityThreshold) {
         return CASES.stream()
                 .map(testCase -> {
-                    List<Document> retrieved = ragChatService.retrieve(testCase.question());
+                    List<Document> retrieved = ragChatService.retrieve(
+                            testCase.question(),
+                            topK,
+                            similarityThreshold
+                    );
                     boolean passed = retrieved.stream()
                             .anyMatch(document -> document.getText().contains(testCase.expectedKeyword()));
                     return new EvalCaseResult(

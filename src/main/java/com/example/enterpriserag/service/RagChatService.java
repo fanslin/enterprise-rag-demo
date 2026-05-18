@@ -19,6 +19,10 @@ public class RagChatService {
     private final ChatClient chatClient;
     private final int topK;
     private final double similarityThreshold;
+    private static final int MIN_TOP_K = 1;
+    private static final int MAX_TOP_K = 20;
+    private static final double MIN_SIMILARITY_THRESHOLD = 0.0;
+    private static final double MAX_SIMILARITY_THRESHOLD = 1.0;
 
     public RagChatService(
             VectorStore vectorStore,
@@ -33,11 +37,15 @@ public class RagChatService {
     }
 
     public ChatResponse ask(String question) {
+        return ask(question, null, null);
+    }
+
+    public ChatResponse ask(String question, Integer topK, Double similarityThreshold) {
         if (question == null || question.isBlank()) {
             throw new IllegalArgumentException("问题不能为空");
         }
 
-        List<Document> retrieved = retrieve(question);
+        List<Document> retrieved = retrieve(question, topK, similarityThreshold);
         if (retrieved.isEmpty()) {
             return new ChatResponse("知识库里没有检索到足够相关的资料。请先上传制度文档，或换一种问法。", List.of());
         }
@@ -64,10 +72,16 @@ public class RagChatService {
     }
 
     public List<Document> retrieve(String question) {
+        return retrieve(question, null, null);
+    }
+
+    public List<Document> retrieve(String question, Integer topK, Double similarityThreshold) {
+        int resolvedTopK = resolveTopK(topK);
+        double resolvedSimilarityThreshold = resolveSimilarityThreshold(similarityThreshold);
         SearchRequest request = SearchRequest.builder()
                 .query(question)
-                .topK(topK)
-                .similarityThreshold(similarityThreshold)
+                .topK(resolvedTopK)
+                .similarityThreshold(resolvedSimilarityThreshold)
                 .build();
         return vectorStore.similaritySearch(request);
     }
@@ -98,6 +112,22 @@ public class RagChatService {
             return normalized;
         }
         return normalized.substring(0, 120) + "...";
+    }
+
+    private int resolveTopK(Integer override) {
+        int value = override == null ? topK : override;
+        if (value < MIN_TOP_K || value > MAX_TOP_K) {
+            throw new IllegalArgumentException("topK 必须在 1 到 20 之间");
+        }
+        return value;
+    }
+
+    private double resolveSimilarityThreshold(Double override) {
+        double value = override == null ? similarityThreshold : override;
+        if (value < MIN_SIMILARITY_THRESHOLD || value > MAX_SIMILARITY_THRESHOLD) {
+            throw new IllegalArgumentException("相似度阈值必须在 0.0 到 1.0 之间");
+        }
+        return value;
     }
 
     private static String metadataAsString(Document document, String key, String fallback) {

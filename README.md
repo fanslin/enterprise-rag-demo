@@ -83,12 +83,14 @@ POST /api/chat
 Content-Type: application/json
 
 {
-  "question": "报销发票最晚什么时候提交？"
+  "question": "报销发票最晚什么时候提交？",
+  "topK": 4,
+  "similarityThreshold": 0.0
 }
 ```
 
 ```http
-GET /api/eval
+GET /api/eval?topK=4&similarityThreshold=0.0
 ```
 
 ## 后续升级方向
@@ -97,4 +99,4 @@ GET /api/eval
 - 增加 PDF、Word 解析
 - 增加多轮对话记忆
 - 增加人工标注评测集，计算召回率和引用准确率
-- 增加检索参数调优页面，对比 topK、相似度阈值、不同 Embedding 模型
+- 扩展检索参数调优能力，对比不同 Embedding 模型和模型组合

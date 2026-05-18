@@ -20,6 +20,6 @@ public class ChatController {
 
     @PostMapping
     ChatResponse ask(@RequestBody ChatRequest request) {
-        return ragChatService.ask(request.question());
+        return ragChatService.ask(request.question(), request.topK(), request.similarityThreshold());
     }
 }
