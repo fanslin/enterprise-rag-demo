@@ -6,6 +6,7 @@ const chatForm = document.querySelector("#chatForm");
 const questionInput = document.querySelector("#questionInput");
 const topKInput = document.querySelector("#topKInput");
 const similarityThresholdInput = document.querySelector("#similarityThresholdInput");
+const aiStatus = document.querySelector("#aiStatus");
 const docList = document.querySelector("#docList");
 const evalList = document.querySelector("#evalList");
 const messages = document.querySelector("#messages");
@@ -97,6 +98,17 @@ async function refreshDocuments() {
     `).join("");
 }
 
+async function refreshAiStatus() {
+    try {
+        const status = await request("/api/health/ai");
+        aiStatus.textContent = status.message;
+        aiStatus.className = `status-banner ${status.mode === "local" ? "local" : "remote"}`;
+    } catch (error) {
+        aiStatus.textContent = error.message;
+        aiStatus.className = "status-banner fail";
+    }
+}
+
 async function request(url, options = {}) {
     const response = await fetch(url, options);
     const text = await response.text();
@@ -156,4 +168,5 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
+refreshAiStatus();
 refreshDocuments();

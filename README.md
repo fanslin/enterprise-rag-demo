@@ -50,6 +50,14 @@ export APP_RAG_SIMILARITY_THRESHOLD="0.0"
 http://localhost:8080
 ```
 
+如果只是本地体验 UI、入库流程和 RAG 主链路形态，可以启用本地 Mock 模式，不需要配置外部模型 API Key：
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+本地 Mock 模式会使用项目内置的确定性 Embedding 和固定 Chat 回答，不会调用 Groq 或智谱 AI。
+
 ## 使用流程
 
 1. 点击“导入样例制度”，系统会把样例 Markdown 切分并写入内存向量库。

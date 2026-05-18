@@ -101,6 +101,34 @@ h2 {
     padding: 18px;
 }
 
+.status-banner {
+    border: 1px solid #dce3ea;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #405063;
+    font-size: 13px;
+    line-height: 1.45;
+    padding: 12px 14px;
+}
+
+.status-banner.local {
+    border-color: #d2b462;
+    background: #fff9e7;
+    color: #634f12;
+}
+
+.status-banner.remote {
+    border-color: #9bd0ad;
+    background: #f2fbf5;
+    color: #245239;
+}
+
+.status-banner.fail {
+    border-color: #e5b1a7;
+    background: #fff6f4;
+    color: #713225;
+}
+
 .upload-box {
     display: grid;
     gap: 10px;
