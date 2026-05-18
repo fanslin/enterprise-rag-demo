@@ -1,97 +1,101 @@
-# Knowledge Base Overwrite Rebuild Design
+# 知识库覆盖式重建设计
 
-## Goal
+## 目标
 
-Make the MVP knowledge base manageable during local demos and iterative testing. Users should be able to re-upload the same source without stale chunks lingering, remove a document from the index, and rebuild the in-memory vector index from the currently known document contents.
+让当前 MVP 的知识库在本地演示和反复调试时更容易管理。用户应该可以重复上传同名文档且不会留下旧片段，可以删除某个文档，也可以基于当前内存中保存的文档内容重新构建向量索引。
 
-## Scope
+## 范围
 
-This design covers the in-memory `SimpleVectorStore` phase only. It keeps the existing upload, sample import, document list, chat, and eval flows, and adds management behavior around the current `KnowledgeBaseService`.
+本设计只覆盖当前基于内存 `SimpleVectorStore` 的阶段。现有上传、导入样例、文档列表、聊天和评测流程保持兼容，只在现有 `KnowledgeBaseService` 周围增加知识库管理能力。
 
-In scope:
+本次包含：
 
-- Duplicate source import uses overwrite semantics.
-- Single-document deletion removes vector chunks and document summary.
-- Rebuild reindexes all currently remembered documents into a clean vector store.
-- The UI exposes delete and rebuild controls in the knowledge-base panel.
-- API and service tests cover the new behavior.
+- 同名文档重复导入时使用覆盖语义。
+- 删除单个文档时移除对应向量片段和文档摘要。
+- 重建索引时根据当前已记住的文档内容重新写入向量库。
+- 前端知识库面板增加删除和重建入口。
+- 为新增服务行为和 API 增加测试。
 
-Out of scope:
+本次不包含：
 
-- Persistent document storage across application restarts.
-- Document version history.
-- Bulk selection or multi-document operations.
-- Switching to Chroma or another persistent vector store.
+- 应用重启后的持久化文档存储。
+- 文档版本历史。
+- 批量选择或批量删除。
+- 切换到 Chroma 或其他持久化向量库。
 
-## Behavior
+## 行为设计
 
-When a document is ingested, the service normalizes the source name as it does today. If that source already exists, the old chunk ids for that source are deleted from the vector store before the new chunks are added. The response still returns the source, chunk count, and a success message. The summary for that source is replaced with the new chunk count and indexed timestamp.
+导入文档时，服务端继续沿用当前的来源文件名清洗逻辑。如果来源文件名已经存在，服务端会先删除这个来源旧的向量片段，再写入新的片段。响应仍然返回来源文件名、片段数量和成功消息。该来源的文档摘要会被新的片段数量和索引时间替换。
 
-Deleting a document by source removes every chunk id known for that source from the vector store and removes its summary and cached source content. Deleting an unknown source returns a client error with a clear message.
+删除文档时，服务端根据来源文件名找到已记录的片段 id，调用向量库删除这些片段，并移除对应的文档摘要和缓存原文。如果要删除的来源不存在，返回明确的客户端错误。
 
-Rebuilding the index deletes all currently known chunk ids from the vector store, re-splits the cached source contents, adds fresh vector documents, and refreshes summaries. If no documents are known, rebuild is a no-op that returns a zero-document result.
+重建索引时，服务端先删除当前已知的所有向量片段，再根据缓存的原文重新切分、生成文档、写入向量库，并刷新文档摘要。如果当前没有任何文档，重建是一个无副作用操作，返回 0 个文档、0 个片段的结果。
 
-## Data Model
+## 数据模型
 
-`KnowledgeBaseService` should keep an in-memory map keyed by source. Each entry stores:
+`KnowledgeBaseService` 维护一个以内存为主的文档状态表，以来源文件名作为 key。每个条目保存：
 
-- source name
-- original content
-- current vector document ids
-- current chunk count
-- indexed timestamp
+- 来源文件名。
+- 原始文档内容。
+- 当前向量文档 id 列表。
+- 当前片段数量。
+- 最近索引时间。
 
-Vector document ids should be deterministic for a source and chunk number, for example `source + "::chunk-" + chunkNumber`, using a sanitized or encoded source segment so that ids are stable and safe to pass to `VectorStore.delete(List<String>)`.
+向量文档 id 应该对同一个来源和片段编号保持稳定，例如使用 `source + "::chunk-" + chunkNumber` 这一类格式。来源部分需要做安全处理或编码，确保 id 可以稳定传给 `VectorStore.delete(List<String>)`。
 
-Metadata continues to include `source`, `chunk`, and `indexedAt`, so existing citation and eval behavior remains unchanged.
+文档 metadata 继续包含 `source`、`chunk` 和 `indexedAt`，这样现有引用展示、检索评测和聊天链路不需要改变。
 
-## API
+## API 设计
 
-Existing endpoints stay compatible:
+现有接口保持兼容：
 
 - `POST /api/documents`
 - `POST /api/documents/sample`
 - `GET /api/documents`
 
-New endpoints:
+新增接口：
 
-- `DELETE /api/documents/{source}` deletes one document by source.
-- `POST /api/documents/rebuild` rebuilds the in-memory vector index.
+- `DELETE /api/documents/{source}`：按来源文件名删除单个文档。
+- `POST /api/documents/rebuild`：重建当前内存知识库的向量索引。
 
-Path variables should accept filename-like source names such as `company-policy.md`; the frontend will URL-encode source values.
+`source` 路径参数需要支持类似 `company-policy.md` 这样的文件名。前端调用时负责对来源文件名做 URL 编码。
 
-Rebuild returns a small response with document count, chunk count, and a message. Delete can return the removed document summary or a simple response; the implementation should prefer a DTO over plain text for consistency with the existing API.
+重建接口返回一个结构化响应，包含文档数量、片段数量和消息。删除接口也返回结构化响应，优先复用或新增 DTO，避免直接返回纯文本。
 
-## Frontend
+## 前端设计
 
-The knowledge-base panel should remain compact. Each document row shows the source, chunk count, and a delete control. The panel also gets one rebuild control below the import controls.
+知识库面板保持紧凑，不改成复杂管理后台。每个文档行展示来源文件名、片段数量和一个删除按钮。导入按钮区域附近增加一个“重建索引”按钮。
 
-After upload, sample import, delete, or rebuild, the UI refreshes the document list and shows a chat-area status message. Failed delete or rebuild requests should surface the API error message.
+上传、导入样例、删除或重建成功后，前端刷新文档列表，并在聊天区域显示一条状态消息。删除或重建失败时，前端展示服务端返回的错误消息。
 
-## Error Handling
+## 错误处理
 
-Business validation errors use the existing `IllegalArgumentException` path and return HTTP 400 through `ApiExceptionHandler`.
+业务校验错误继续使用现有 `IllegalArgumentException` 路径，由 `ApiExceptionHandler` 返回 HTTP 400。
 
-Expected errors:
+预期错误包括：
 
-- Unsupported upload type keeps the current message.
-- Empty document keeps the current message.
-- Delete unknown source returns `文档不存在：<source>`.
+- 不支持的上传类型：保持当前错误消息。
+- 空文档：保持当前错误消息。
+- 删除不存在的来源：返回 `文档不存在：<source>`。
 
-If `VectorStore.delete` or `VectorStore.add` throws unexpectedly, the existing 500 handling remains responsible for hiding internals from the frontend.
+如果 `VectorStore.delete` 或 `VectorStore.add` 出现未预期异常，继续由现有 500 错误处理隐藏内部细节。
 
-## Testing
+## 测试设计
 
-Service tests should verify:
+服务层测试覆盖：
 
-- Re-importing the same source deletes old chunk ids before adding new documents.
-- Deleting a known source removes ids, summary, and cached content.
-- Deleting an unknown source fails before touching the vector store.
-- Rebuild deletes known ids and adds fresh documents from cached content.
+- 重复导入同一来源时，先删除旧片段 id，再写入新文档。
+- 删除已存在来源时，移除向量片段、文档摘要和缓存原文。
+- 删除不存在来源时，在触碰向量库前失败。
+- 重建索引时，删除已知旧片段，并根据缓存原文写入新的文档片段。
 
-Controller tests should verify:
+控制器测试覆盖：
 
-- `DELETE /api/documents/{source}` delegates and returns success.
-- `POST /api/documents/rebuild` delegates and returns document and chunk counts.
+- `DELETE /api/documents/{source}` 会调用服务层删除逻辑并返回成功响应。
+- `POST /api/documents/rebuild` 会调用服务层重建逻辑，并返回文档数量和片段数量。
 
-Existing package verification remains `./mvnw package`.
+最终验证命令保持为：
+
+```bash
+./mvnw package
+```
