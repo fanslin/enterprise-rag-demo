@@ -206,6 +206,50 @@ h2 {
     line-height: 1.45;
 }
 
+.eval-summary,
+.eval-run {
+    border: 1px solid #d8e0e8;
+    border-radius: 6px;
+    padding: 10px;
+    background: #ffffff;
+}
+
+.eval-summary,
+.eval-run-head {
+    display: grid;
+    gap: 4px;
+}
+
+.eval-summary span,
+.eval-run-head span,
+.eval-case-meta {
+    color: #5a6878;
+    font-size: 12px;
+}
+
+.eval-run {
+    display: grid;
+    gap: 8px;
+}
+
+.eval-citations {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.eval-citations div {
+    display: grid;
+    gap: 2px;
+    border-top: 1px solid #e3e9ef;
+    padding-top: 6px;
+}
+
+.eval-citations span {
+    color: #455466;
+    overflow-wrap: anywhere;
+}
+
 .doc-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

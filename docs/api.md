@@ -213,26 +213,88 @@ Content-Type: application/json
 GET /api/eval?topK=4&similarityThreshold=0.0
 ```
 
-响应：
+也可以传入逗号分隔的参数矩阵：
 
-```json
-[
-  {
-    "question": "试用期请假会影响转正吗？",
-    "expectedKeyword": "转正",
-    "passed": true,
-    "retrieved": [
-      {
-        "source": "company-policy.md",
-        "chunk": 1,
-        "preview": "..."
-      }
-    ]
-  }
-]
+```http
+GET /api/eval?topK=2,4,6&similarityThreshold=0.0,0.3
 ```
 
 说明：
 
-- 当前评测只检查检索片段是否包含期望关键词。
-- 它用于快速发现知识库未导入、Embedding 配置错误、检索阈值过高等问题。
+- 评测用例来自 `src/main/resources/eval-cases.json`。
+- `topK` 支持单个整数或逗号分隔整数列表，范围是 1 到 20。
+- `similarityThreshold` 支持单个小数或逗号分隔小数列表，范围是 0.0 到 1.0。
+- 多个 `topK` 和多个 `similarityThreshold` 会组成笛卡尔积，分别运行完整评测集。
+- 不传参数时使用 `application.yml` 中的默认检索参数。
+
+响应：
+
+```json
+{
+  "summary": {
+    "totalRuns": 1,
+    "totalCases": 4,
+    "passedCases": 4,
+    "failedCases": 0,
+    "passRate": 1.0
+  },
+  "runs": [
+    {
+      "topK": 4,
+      "similarityThreshold": 0.0,
+      "totalCases": 4,
+      "passedCases": 4,
+      "failedCases": 0,
+      "passRate": 1.0,
+      "results": [
+        {
+          "id": "probation-leave",
+          "question": "试用期请假会影响转正吗？",
+          "expectedKeywords": ["转正"],
+          "expectedSources": ["company-policy.md"],
+          "expectedAnswer": "试用期请假应按公司制度申请，是否影响转正以制度要求和审批结果为准。",
+          "passed": true,
+          "failureReason": "PASSED",
+          "failureMessage": "通过",
+          "retrieved": [
+            {
+              "source": "company-policy.md",
+              "chunk": 1,
+              "preview": "..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+失败原因：
+
+| failureReason | 含义 |
+| --- | --- |
+| `PASSED` | 命中期望关键词，且命中期望来源或该用例未配置来源 |
+| `NO_RETRIEVED_DOCUMENTS` | 没有召回任何片段 |
+| `MISSING_KEYWORDS` | 召回了片段，但没有命中任一期望关键词 |
+| `MISSING_SOURCE` | 关键词命中，但召回来源没有命中期望来源 |
+
+非法参数返回 HTTP 400：
+
+```json
+{
+  "message": "topK 参数格式错误：abc"
+}
+```
+
+```json
+{
+  "message": "similarityThreshold 必须在 0.0 到 1.0 之间"
+}
+```
+
+说明：
+
+- 当前自动评分仍聚焦检索质量，不调用模型判断答案质量。
+- `expectedAnswer` 是人工阅读参考答案，保留给后续生成质量评测扩展。
+- 评测可用于快速发现知识库未导入、Embedding 配置错误、检索阈值过高、参数组合召回不足等问题。
