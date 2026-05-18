@@ -28,7 +28,7 @@ GET /
 
 ```json
 {
-  "message": "服务处理失败：..."
+  "message": "服务暂时不可用，请稍后重试或检查模型服务配置。"
 }
 ```
 
@@ -105,9 +105,13 @@ POST /api/chat
 Content-Type: application/json
 
 {
-  "question": "报销发票最晚什么时候提交？"
+  "question": "报销发票最晚什么时候提交？",
+  "topK": 4,
+  "similarityThreshold": 0.0
 }
 ```
+
+`topK` 和 `similarityThreshold` 可省略，省略时使用 `application.yml` 中的默认值。`topK` 范围是 1 到 20，`similarityThreshold` 范围是 0.0 到 1.0。
 
 响应：
 
@@ -136,7 +140,7 @@ Content-Type: application/json
 ## 运行检索评测
 
 ```http
-GET /api/eval
+GET /api/eval?topK=4&similarityThreshold=0.0
 ```
 
 响应：

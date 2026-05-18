@@ -8,7 +8,7 @@
 - 为 `RagChatService` 增加 mock `VectorStore` 和 mock `ChatClient` 测试。
 - 增加空知识库、空问题、非法文件类型、模型异常的测试。
 - 在前端展示更明确的错误状态，例如 API Key 未配置、知识库为空、模型服务不可用。
-- 给 `topK` 和 `similarityThreshold` 增加页面可调入口，便于观察检索效果。
+- 扩展检索参数调优能力，对比不同 Embedding 模型和模型组合。
 
 ## P1：知识库生产化
 
