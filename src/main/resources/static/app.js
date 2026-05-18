@@ -1,6 +1,7 @@
 const uploadForm = document.querySelector("#uploadForm");
 const fileInput = document.querySelector("#fileInput");
 const sampleBtn = document.querySelector("#sampleBtn");
+const rebuildBtn = document.querySelector("#rebuildBtn");
 const evalBtn = document.querySelector("#evalBtn");
 const chatForm = document.querySelector("#chatForm");
 const questionInput = document.querySelector("#questionInput");
@@ -33,6 +34,32 @@ sampleBtn.addEventListener("click", async () => {
     try {
         const result = await request("/api/documents/sample", { method: "POST" });
         addAssistantMessage(`${result.source} 已入库，共 ${result.chunks} 个片段。现在可以提问了。`);
+        await refreshDocuments();
+    } catch (error) {
+        addAssistantMessage(error.message);
+    }
+});
+
+rebuildBtn.addEventListener("click", async () => {
+    try {
+        const result = await request("/api/documents/rebuild", { method: "POST" });
+        addAssistantMessage(result.message);
+        await refreshDocuments();
+    } catch (error) {
+        addAssistantMessage(error.message);
+    }
+});
+
+docList.addEventListener("click", async (event) => {
+    const deleteButton = event.target.closest("[data-delete-source]");
+    if (!deleteButton) {
+        return;
+    }
+
+    const source = deleteButton.dataset.deleteSource;
+    try {
+        await request(`/api/documents/${encodeURIComponent(source)}`, { method: "DELETE" });
+        addAssistantMessage(`${source} 已从知识库删除。`);
         await refreshDocuments();
     } catch (error) {
         addAssistantMessage(error.message);
@@ -91,9 +118,12 @@ async function refreshDocuments() {
         return;
     }
     docList.innerHTML = docs.map((doc) => `
-        <div class="doc-item">
-            <strong>${escapeHtml(doc.source)}</strong><br>
-            ${doc.chunks} 个片段
+        <div class="doc-item doc-row">
+            <div class="doc-meta">
+                <strong>${escapeHtml(doc.source)}</strong>
+                <span>${escapeHtml(doc.chunks)} 个片段</span>
+            </div>
+            <button class="danger compact" type="button" data-delete-source="${escapeHtml(doc.source)}">删除</button>
         </div>
     `).join("");
 }

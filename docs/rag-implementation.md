@@ -58,9 +58,21 @@ flowchart TD
    - `source`：来源文件名。
    - `chunk`：片段编号，从 1 开始。
    - `indexedAt`：索引时间。
-6. 调用 `vectorStore.add(documents)`。
+6. 为每个片段生成稳定向量文档 id。
+7. 如果同名文档已经存在，先调用 `vectorStore.delete(ids)` 删除旧片段。
+8. 调用 `vectorStore.add(documents)`。
 
 `VectorStore` 当前由 `AiConfig` 创建为 `SimpleVectorStore`。它会在添加文档时通过 Spring AI 的 `EmbeddingModel` 生成向量。
+
+`KnowledgeBaseService` 会在内存中缓存当前导入文档的原文、向量 id 列表和摘要信息。这个缓存支持三个管理能力：
+
+- 重复导入同名文档时覆盖旧索引，避免检索命中旧片段。
+- 删除单个文档时按已记录的向量 id 移除对应片段。
+- 重建索引时先删除当前已知片段，再基于缓存原文重新切分和写入。
+
+覆盖导入和重建索引都需要先删除旧向量再写入新向量。如果新向量写入失败，服务会尝试根据内存缓存把旧向量文档写回，避免前端摘要仍存在但向量库内容已丢失。
+
+这些管理能力仍然是内存级别的：应用重启后，缓存原文和 `SimpleVectorStore` 内容都会丢失。
 
 当前项目使用 Groq Chat Model 和智谱 AI Embedding Model。Groq 用于检索完成后的回答生成；智谱 Embedding 用于导入文档和检索问题时的向量化，因此需要同时配置 `GROQ_API_KEY`、`GROQ_CHAT_MODEL`、`ZAI_API_KEY` 和 `ZAI_EMBEDDING_MODEL`。
 

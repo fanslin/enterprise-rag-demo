@@ -63,6 +63,7 @@ file=<.md 或 .txt 文件>
 - 仅支持 `.md` 和 `.txt`。
 - 文件内容按 UTF-8 读取。
 - 文件大小限制由 `application.yml` 控制，当前最大 5MB。
+- 如果同名文档已经存在，新导入会覆盖旧片段：服务端会先删除旧向量片段，再写入新片段。
 
 响应：
 
@@ -114,6 +115,58 @@ GET /api/documents
 ```
 
 注意：当前文档摘要保存在内存中，应用重启后会丢失。
+
+## 删除文档
+
+```http
+DELETE /api/documents/{source}
+```
+
+说明：
+
+- `source` 是文档来源文件名，例如 `company-policy.md`。
+- 客户端应对 `source` 做 URL 编码。
+- 删除会移除该文档的内存摘要、缓存原文和对应向量片段。
+
+响应：
+
+```json
+{
+  "source": "company-policy.md",
+  "chunks": 4,
+  "indexedAt": "2026-05-13T10:00:00Z"
+}
+```
+
+文档不存在时返回 HTTP 400：
+
+```json
+{
+  "message": "文档不存在：company-policy.md"
+}
+```
+
+## 重建索引
+
+```http
+POST /api/documents/rebuild
+```
+
+说明：
+
+- 基于当前内存中缓存的文档原文重建向量索引。
+- 服务端会先删除当前已知向量片段，再重新切分并写入向量库。
+- 当前阶段不做持久化，应用重启后没有可重建的历史文档。
+
+响应：
+
+```json
+{
+  "documents": 2,
+  "chunks": 7,
+  "message": "已重建 2 个文档，共 7 个片段"
+}
+```
 
 ## RAG 问答
 
