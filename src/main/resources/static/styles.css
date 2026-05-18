@@ -44,6 +44,22 @@ button.secondary:hover {
     background: #dfe9f3;
 }
 
+button.danger {
+    background: #fff1ee;
+    color: #8a3324;
+    border: 1px solid #e5b1a7;
+}
+
+button.danger:hover {
+    background: #ffe5df;
+}
+
+button.compact {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
 .app-shell {
     min-height: 100vh;
     padding: 24px;
@@ -143,6 +159,12 @@ h2 {
     background: #fbfcfd;
 }
 
+.kb-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
 .control-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -182,6 +204,28 @@ h2 {
     background: #fbfcfd;
     font-size: 13px;
     line-height: 1.45;
+}
+
+.doc-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.doc-meta {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.doc-meta strong,
+.doc-meta span {
+    overflow-wrap: anywhere;
+}
+
+.doc-meta span {
+    color: #5a6878;
 }
 
 .eval-item.pass {
