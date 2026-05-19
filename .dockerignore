@@ -1,0 +1,7 @@
+.git
+.idea
+.DS_Store
+target
+!target/enterprise-rag-demo-0.0.1-SNAPSHOT.jar
+*.iml
+docs/superpowers
