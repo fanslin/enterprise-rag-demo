@@ -69,14 +69,8 @@ docList.addEventListener("click", async (event) => {
 evalBtn.addEventListener("click", async () => {
     evalList.innerHTML = `<div class="doc-item">评测中...</div>`;
     try {
-        const results = await request(`/api/eval?${retrievalQueryParams()}`);
-        evalList.innerHTML = results.map((item) => `
-            <div class="eval-item ${item.passed ? "pass" : "fail"}">
-                <strong>${item.passed ? "通过" : "未命中"}</strong><br>
-                ${escapeHtml(item.question)}<br>
-                期望关键词：${escapeHtml(item.expectedKeyword)}
-            </div>
-        `).join("");
+        const report = await request(`/api/eval?${retrievalQueryParams()}`);
+        evalList.innerHTML = renderEvalReport(report);
     } catch (error) {
         evalList.innerHTML = `<div class="eval-item fail">${escapeHtml(error.message)}</div>`;
     }
@@ -151,13 +145,92 @@ async function request(url, options = {}) {
 
 function retrievalOptions() {
     return {
-        topK: Number(topKInput.value),
-        similarityThreshold: Number(similarityThresholdInput.value)
+        topK: Number(firstValue(topKInput.value)),
+        similarityThreshold: Number(firstValue(similarityThresholdInput.value))
     };
 }
 
 function retrievalQueryParams() {
-    return new URLSearchParams(retrievalOptions()).toString();
+    return new URLSearchParams({
+        topK: topKInput.value.trim(),
+        similarityThreshold: similarityThresholdInput.value.trim()
+    }).toString();
+}
+
+function firstValue(value) {
+    return String(value ?? "").split(",")[0].trim();
+}
+
+function renderEvalReport(report) {
+    const summary = report.summary ?? {};
+    const runs = report.runs ?? [];
+    return `
+        <div class="eval-summary">
+            <strong>${formatPercent(summary.passRate)} 通过率</strong>
+            <span>${summary.passedCases ?? 0} 通过 / ${summary.failedCases ?? 0} 失败 / ${summary.totalRuns ?? 0} 组参数</span>
+        </div>
+        ${runs.map(renderEvalRun).join("")}
+    `;
+}
+
+function renderEvalRun(run) {
+    const results = run.results ?? [];
+    return `
+        <section class="eval-run">
+            <div class="eval-run-head">
+                <strong>Top K ${formatParam(run.topK)} · 阈值 ${formatParam(run.similarityThreshold)}</strong>
+                <span>${formatPercent(run.passRate)} · ${run.passedCases} / ${run.totalCases}</span>
+            </div>
+            ${results.map(renderEvalCase).join("")}
+        </section>
+    `;
+}
+
+function renderEvalCase(item) {
+    return `
+        <div class="eval-item ${item.passed ? "pass" : "fail"}">
+            <strong>${item.passed ? "通过" : "失败"} · ${escapeHtml(item.failureMessage)}</strong>
+            <div>${escapeHtml(item.question)}</div>
+            <div class="eval-case-meta">关键词：${escapeHtml(formatList(item.expectedKeywords))}</div>
+            <div class="eval-case-meta">来源：${escapeHtml(formatList(item.expectedSources))}</div>
+            ${renderEvalCitations(item.retrieved)}
+        </div>
+    `;
+}
+
+function renderEvalCitations(citations = []) {
+    if (!citations.length) {
+        return "";
+    }
+    return `
+        <div class="eval-citations">
+            ${citations.map((citation) => `
+                <div>
+                    <strong>${escapeHtml(citation.source)}#${escapeHtml(citation.chunk)}</strong>
+                    <span>${escapeHtml(citation.preview)}</span>
+                </div>
+            `).join("")}
+        </div>
+    `;
+}
+
+function formatList(values = []) {
+    if (!values.length) {
+        return "未配置";
+    }
+    return values.join("、");
+}
+
+function formatPercent(value) {
+    const percent = Number(value) * 100;
+    if (!Number.isFinite(percent)) {
+        return "0%";
+    }
+    return `${percent.toFixed(percent % 1 === 0 ? 0 : 1)}%`;
+}
+
+function formatParam(value) {
+    return value === null || value === undefined ? "默认" : value;
 }
 
 function addUserMessage(text) {

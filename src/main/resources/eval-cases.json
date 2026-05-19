@@ -1,0 +1,30 @@
+[
+  {
+    "id": "probation-leave",
+    "question": "试用期请假会影响转正吗？",
+    "expectedKeywords": ["转正"],
+    "expectedSources": ["company-policy.md"],
+    "expectedAnswer": "试用期请假应按公司制度申请，是否影响转正以制度要求和审批结果为准。"
+  },
+  {
+    "id": "reimbursement-invoice-deadline",
+    "question": "报销发票最晚什么时候提交？",
+    "expectedKeywords": ["30"],
+    "expectedSources": ["company-policy.md"],
+    "expectedAnswer": "报销发票需要在规定期限内提交，制度中要求 30 天内处理。"
+  },
+  {
+    "id": "annual-leave-carryover",
+    "question": "年假没休完怎么处理？",
+    "expectedKeywords": ["结转"],
+    "expectedSources": ["company-policy.md"],
+    "expectedAnswer": "未休完的年假按制度规则处理，可以根据制度要求进行结转。"
+  },
+  {
+    "id": "remote-work-advance-application",
+    "question": "远程办公需要提前多久申请？",
+    "expectedKeywords": ["1"],
+    "expectedSources": ["company-policy.md"],
+    "expectedAnswer": "远程办公需要按制度提前申请，当前样例制度要求提前 1 天。"
+  }
+]
