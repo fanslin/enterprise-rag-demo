@@ -11,6 +11,11 @@
 
 默认部署使用 `SPRING_PROFILES_ACTIVE=local`，也就是本地 Mock AI 模式，不需要配置 Groq 和智谱 API Key。
 
+配置拆分为两类：
+
+- `k8s/minikube/configmap.yaml`：非敏感配置，例如模型名、Base URL、RAG 参数、当前 profile。
+- `enterprise-rag-secrets` Secret：敏感配置，例如 `GROQ_API_KEY` 和 `ZAI_API_KEY`。默认可选，不创建也能用 local profile 跑通。
+
 ## 前置条件
 
 ```bash
@@ -70,6 +75,18 @@ kubectl -n enterprise-rag get pods
 
 等待 Pod 变成 `Running` 且 `READY` 为 `1/1`。
 
+查看 ConfigMap：
+
+```bash
+kubectl -n enterprise-rag get configmap enterprise-rag-config -o yaml
+```
+
+确认 Pod 已从 ConfigMap 读取配置：
+
+```bash
+kubectl -n enterprise-rag exec deploy/enterprise-rag-demo -- printenv SPRING_PROFILES_ACTIVE APP_RAG_TOP_K GROQ_CHAT_MODEL
+```
+
 ## 访问应用
 
 使用端口转发：
@@ -126,28 +143,55 @@ kubectl -n enterprise-rag rollout restart deploy/enterprise-rag-demo
 kubectl -n enterprise-rag rollout status deploy/enterprise-rag-demo
 ```
 
+## 练习 Secret
+
+第一阶段建议先用 local profile。你可以先创建 dummy Secret 来理解注入机制，不要提交真实 Key 到 Git。
+
+创建测试 Secret：
+
+```bash
+kubectl -n enterprise-rag create secret generic enterprise-rag-secrets \
+  --from-literal=GROQ_API_KEY='dummy-groq-key' \
+  --from-literal=ZAI_API_KEY='dummy-zai-key' \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Secret 创建或更新后，重启 Pod 让环境变量重新注入：
+
+```bash
+kubectl -n enterprise-rag rollout restart deploy/enterprise-rag-demo
+kubectl -n enterprise-rag rollout status deploy/enterprise-rag-demo
+```
+
+不要把真实 Secret 值打印到终端。可以只检查变量是否存在：
+
+```bash
+kubectl -n enterprise-rag exec deploy/enterprise-rag-demo -- sh -c 'test -n "$GROQ_API_KEY" && echo GROQ_API_KEY_SET; test -n "$ZAI_API_KEY" && echo ZAI_API_KEY_SET'
+```
+
+查看 Secret 对象：
+
+```bash
+kubectl -n enterprise-rag get secret enterprise-rag-secrets
+```
+
+`k8s/minikube/secret.remote.example.yaml` 只是示例文件，里面只能放占位符，不要填真实 Key 后提交。
+
 ## 使用真实模型服务
 
-第一阶段建议先用 local profile。等基础流程跑通后，再练习 Kubernetes Secret。
-
-创建 Secret：
+要调用真实模型服务时，先用真实值更新 Secret：
 
 ```bash
 kubectl -n enterprise-rag create secret generic enterprise-rag-secrets \
   --from-literal=GROQ_API_KEY='你的 Groq API Key' \
-  --from-literal=ZAI_API_KEY='你的智谱 API Key'
+  --from-literal=ZAI_API_KEY='你的智谱 API Key' \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-然后修改 `k8s/minikube/deployment.yaml`：
+然后修改 `k8s/minikube/configmap.yaml`：
 
 1. 删除 `SPRING_PROFILES_ACTIVE=local`。
-2. 在容器配置下增加：
-
-```yaml
-envFrom:
-  - secretRef:
-      name: enterprise-rag-secrets
-```
+2. 或把它改成空字符串：`SPRING_PROFILES_ACTIVE: ""`。
 
 重新应用：
 
