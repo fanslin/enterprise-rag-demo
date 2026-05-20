@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: enterprise-rag-demo
-          image: ghcr.io/fanslin/enterprise-rag-demo:sha-5a7268a2af91175bfe3b856050c318a35e3d0378
+          image: ghcr.io/fanslin/enterprise-rag-demo:sha-baab1f1ca67f89cd4eb1db16f7a9f56afd020fd6
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
