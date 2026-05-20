@@ -92,6 +92,15 @@ http://localhost:8080
 3. 把 `k8s/kind/deployment.yaml` 中的镜像更新为 `sha-<commit-sha>`。
 4. 提交一条 `chore: deploy ... [skip ci]` commit。
 
+镜像会同时构建：
+
+```text
+linux/amd64
+linux/arm64
+```
+
+这样 Intel/AMD 云服务器和 Apple Silicon Mac 上的 kind 集群都可以拉取同一个 tag。
+
 你需要在 GitHub 仓库设置里确认：
 
 1. `Settings -> Actions -> General -> Workflow permissions`
@@ -228,6 +237,7 @@ kubectl -n enterprise-rag describe pod -l app=enterprise-rag-demo
 - GHCR package 是私有的，但集群没有 image pull secret。
 - manifest 中的镜像 tag 还停留在 `bootstrap`。
 - GitHub Actions 没有成功推送镜像。
+- 镜像只构建了 `linux/amd64`，但本机 kind 节点是 `arm64`。可以用 `kubectl get node -o jsonpath='{.items[0].status.nodeInfo.architecture}'` 查看节点架构，用 `docker buildx imagetools inspect <image>` 查看镜像平台。
 
 ### Argo CD 一直 OutOfSync
 
