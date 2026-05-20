@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enterprise-rag-config
+  namespace: enterprise-rag
+data:
+  SPRING_PROFILES_ACTIVE: local
+  GROQ_BASE_URL: https://api.groq.com/openai
+  GROQ_CHAT_MODEL: llama-3.3-70b-versatile
+  GROQ_CHAT_COMPLETIONS_PATH: /v1/chat/completions
+  ZAI_BASE_URL: https://open.bigmodel.cn/api/paas
+  ZAI_EMBEDDING_MODEL: embedding-3
+  ZAI_EMBEDDINGS_PATH: /v4/embeddings
+  APP_RAG_TOP_K: "4"
+  APP_RAG_SIMILARITY_THRESHOLD: "0.0"
