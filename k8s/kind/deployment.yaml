@@ -22,13 +22,12 @@ spec:
           ports:
             - name: http
               containerPort: 8080
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: local
-            - name: APP_RAG_TOP_K
-              value: "4"
-            - name: APP_RAG_SIMILARITY_THRESHOLD
-              value: "0.0"
+          envFrom:
+            - configMapRef:
+                name: enterprise-rag-config
+            - secretRef:
+                name: enterprise-rag-secrets
+                optional: true
           readinessProbe:
             httpGet:
               path: /api/health/ai

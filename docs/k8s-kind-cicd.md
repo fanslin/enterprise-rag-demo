@@ -20,6 +20,11 @@ git push main
 - GitHub Actions 负责测试、打包、构建镜像、更新 GitOps manifest。
 - Argo CD 负责持续比较 Git 与集群状态，并把集群同步到 Git 里的期望状态。
 
+配置拆分为两类：
+
+- `k8s/kind/configmap.yaml`：非敏感配置，例如模型名、Base URL、RAG 参数、当前 profile，由 Argo CD 同步。
+- `enterprise-rag-secrets` Secret：敏感配置，例如 `GROQ_API_KEY` 和 `ZAI_API_KEY`。真实值不提交 Git，学习阶段可以手动在 kind 集群中创建。
+
 ## 前置条件
 
 ```bash
@@ -173,6 +178,48 @@ targetRevision: main
 ```
 
 如果仓库是私有仓库，需要先在 Argo CD 中配置仓库访问凭据。学习阶段最简单的做法是先使用公开仓库。
+
+## 配置 ConfigMap 和 Secret
+
+Argo CD 会同步 `k8s/kind/configmap.yaml`，所以非敏感配置会随 Git 进入集群。
+
+查看 ConfigMap：
+
+```bash
+kubectl --context kind-enterprise-rag -n enterprise-rag get configmap enterprise-rag-config -o yaml
+```
+
+确认 Pod 已读取 ConfigMap：
+
+```bash
+kubectl --context kind-enterprise-rag -n enterprise-rag exec deploy/enterprise-rag-demo -- printenv SPRING_PROFILES_ACTIVE APP_RAG_TOP_K GROQ_CHAT_MODEL
+```
+
+Secret 的真实值不要提交到 Git。可以手动创建测试 Secret：
+
+```bash
+kubectl --context kind-enterprise-rag -n enterprise-rag create secret generic enterprise-rag-secrets \
+  --from-literal=GROQ_API_KEY='dummy-groq-key' \
+  --from-literal=ZAI_API_KEY='dummy-zai-key' \
+  --dry-run=client -o yaml | kubectl --context kind-enterprise-rag apply -f -
+```
+
+Secret 创建或更新后，重启 Deployment 让环境变量重新注入：
+
+```bash
+kubectl --context kind-enterprise-rag -n enterprise-rag rollout restart deploy/enterprise-rag-demo
+kubectl --context kind-enterprise-rag -n enterprise-rag rollout status deploy/enterprise-rag-demo
+```
+
+不要把真实 Secret 值打印到终端。可以只检查变量是否存在：
+
+```bash
+kubectl --context kind-enterprise-rag -n enterprise-rag exec deploy/enterprise-rag-demo -- sh -c 'test -n "$GROQ_API_KEY" && echo GROQ_API_KEY_SET; test -n "$ZAI_API_KEY" && echo ZAI_API_KEY_SET'
+```
+
+`k8s/kind/secret.remote.example.yaml` 只是示例文件，里面只能放占位符。
+
+如果要切到真实模型服务，先创建真实 Secret，然后把 `k8s/kind/configmap.yaml` 里的 `SPRING_PROFILES_ACTIVE: local` 删除或改成空字符串，再合并到 `main` 让 Argo CD 同步。
 
 ## 完整验证流程
 
