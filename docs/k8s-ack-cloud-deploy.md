@@ -8,7 +8,7 @@
 
 ```text
 GitHub Actions
-  -> 构建多架构镜像并推送到 GHCR
+  -> 构建多架构镜像并推送到阿里云 ACR
   -> 更新 k8s/ack/deployment.yaml 中的镜像 tag
   -> Argo CD 监听 main 分支的 k8s/ack
   -> ACK 集群自动部署
@@ -25,6 +25,43 @@ limits:   500m CPU / 512Mi memory
 ```
 
 这样可以避免 4C4G 小规格节点被 ACK 系统组件、监控组件和 Argo CD 占用后，业务 Pod 因资源请求过高而调度失败。
+
+ACK 云上环境使用阿里云 ACR 镜像仓库，默认镜像地址：
+
+```text
+crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com/fanslin-namespace/cn.fanslin:<tag>
+```
+
+本地 kind 环境仍使用 GHCR，便于继续保留前一阶段的 GitOps 演练。
+
+## 0. 配置 GitHub Actions 推送 ACR
+
+在 GitHub 仓库配置 Secrets：
+
+```text
+Settings -> Secrets and variables -> Actions -> New repository secret
+```
+
+新增：
+
+```text
+ACR_USERNAME
+ACR_PASSWORD
+```
+
+`ACR_USERNAME` 使用阿里云 ACR 登录用户名，`ACR_PASSWORD` 使用 ACR 访问凭证。不要把 ACR 密码写入代码仓库。
+
+如果你的 ACR 完整地址不是：
+
+```text
+crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com/fanslin-namespace/cn.fanslin
+```
+
+请修改 `.github/workflows/ci-image.yml` 里的：
+
+```text
+ACR_IMAGE_NAME
+```
 
 ## 1. 连接 ACK 集群
 

@@ -54,7 +54,8 @@ jobs:
 
       - name: Prepare image names
         run: |
-          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "GHCR_IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "ACR_IMAGE_NAME=crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com/fanslin-namespace/cn.fanslin" >> "$GITHUB_ENV"
           echo "IMAGE_TAG=sha-${GITHUB_SHA}" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
@@ -67,6 +68,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -74,15 +82,17 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.GHCR_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.GHCR_IMAGE_NAME }}:latest
+            ${{ env.ACR_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.ACR_IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Update kind manifest image
         run: |
-          sed -i.bak "s|image: ghcr.io/.*/enterprise-rag-demo:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/kind/deployment.yaml
-          sed -i.bak "s|image: ghcr.io/.*/enterprise-rag-demo:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/ack/deployment.yaml
+          sed -i.bak "s|image: .*|image: ${GHCR_IMAGE_NAME}:${IMAGE_TAG}|" k8s/kind/deployment.yaml
+          sed -i.bak "s|image: .*|image: ${ACR_IMAGE_NAME}:${IMAGE_TAG}|" k8s/ack/deployment.yaml
           rm k8s/kind/deployment.yaml.bak
           rm k8s/ack/deployment.yaml.bak
           git diff -- k8s/kind/deployment.yaml k8s/ack/deployment.yaml
