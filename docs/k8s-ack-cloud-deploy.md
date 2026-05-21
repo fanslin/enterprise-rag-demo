@@ -63,6 +63,17 @@ crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com/fanslin-namespace/cn.
 ACR_IMAGE_NAME
 ```
 
+ACK 集群拉取 ACR 私有镜像时，也需要在业务命名空间创建拉取密钥：
+
+```bash
+kubectl -n enterprise-rag create secret docker-registry acr-pull-secret \
+  --docker-server=crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com \
+  --docker-username=<你的 ACR 用户名> \
+  --docker-password=<你的 ACR 密码>
+```
+
+`k8s/ack/deployment.yaml` 已通过 `imagePullSecrets` 引用这个密钥。密钥只存在于 ACK 集群里，不提交到 Git。
+
 ## 1. 连接 ACK 集群
 
 在阿里云 ACK 控制台进入你的集群：
