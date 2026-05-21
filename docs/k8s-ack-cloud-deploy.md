@@ -17,6 +17,15 @@ GitHub Actions
 
 第一轮仍使用 `SPRING_PROFILES_ACTIVE=local`，不依赖真实 Groq 和智谱 API Key。先跑通云上 Kubernetes 和 GitOps，再接真实 Secret。
 
+ACK 学习环境的应用资源请求比本地 kind 更保守：
+
+```text
+requests: 100m CPU / 128Mi memory
+limits:   500m CPU / 512Mi memory
+```
+
+这样可以避免 4C4G 小规格节点被 ACK 系统组件、监控组件和 Argo CD 占用后，业务 Pod 因资源请求过高而调度失败。
+
 ## 1. 连接 ACK 集群
 
 在阿里云 ACK 控制台进入你的集群：
