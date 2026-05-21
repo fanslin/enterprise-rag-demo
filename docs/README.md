@@ -8,6 +8,7 @@
 - [RAG 实现原理](rag-implementation.md)：文档切分、向量入库、检索、Prompt 组装、引用返回和评测方式。
 - [API 说明](api.md)：前端调用的 REST API、请求响应结构和错误处理。
 - [开发与运行手册](development.md)：环境变量、启动、验证、Maven 配置和常见问题。
+- [Kubernetes / Argo CD 日常操作与排障清单](k8s-ops-runbook.md)：minikube、kind、ACK、Argo CD、ACR 的常用命令与问题定位路径。
 - [向量库选型](vector-store-options.md)：ChromaDB 是否适合替换内存向量库，以及后续迁移路线。
 - [演进路线](roadmap.md)：从 MVP 升级到企业级 RAG 应用的优先级建议。
 
