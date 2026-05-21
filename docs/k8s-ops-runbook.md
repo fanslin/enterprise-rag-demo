@@ -234,7 +234,7 @@ curl http://<EXTERNAL-IP>/api/health/ai
 当前 ACK 使用 ACR 个人版镜像：
 
 ```text
-crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com/fanslin-namespace/cn.fanslin:<tag>
+crpi-t3tr33r.cn-hangzhou.personal.cr.aliyuncs.com/ccc-namespace/cn.ccc:<tag>
 ```
 
 查看 ACK 中是否已有 ACR 拉取密钥：
@@ -247,7 +247,7 @@ kubectl --context ack-enterprise-rag -n enterprise-rag get secret acr-pull-secre
 
 ```bash
 kubectl --context ack-enterprise-rag -n enterprise-rag create secret docker-registry acr-pull-secret \
-  --docker-server=crpi-y9knyaepfs2bdt4q.cn-hangzhou.personal.cr.aliyuncs.com \
+  --docker-server=crpi-t3tr33r.cn-hangzhou.personal.cr.aliyuncs.com \
   --docker-username=<你的 ACR 用户名> \
   --docker-password=<你的 ACR 密码>
 ```
