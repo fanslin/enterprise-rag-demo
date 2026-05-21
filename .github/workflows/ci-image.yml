@@ -82,13 +82,15 @@ jobs:
       - name: Update kind manifest image
         run: |
           sed -i.bak "s|image: ghcr.io/.*/enterprise-rag-demo:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/kind/deployment.yaml
+          sed -i.bak "s|image: ghcr.io/.*/enterprise-rag-demo:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/ack/deployment.yaml
           rm k8s/kind/deployment.yaml.bak
-          git diff -- k8s/kind/deployment.yaml
+          rm k8s/ack/deployment.yaml.bak
+          git diff -- k8s/kind/deployment.yaml k8s/ack/deployment.yaml
 
       - name: Commit GitOps manifest
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add k8s/kind/deployment.yaml
+          git add k8s/kind/deployment.yaml k8s/ack/deployment.yaml
           git commit -m "chore: deploy ${GITHUB_SHA::7} [skip ci]"
           git push
